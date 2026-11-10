@@ -42,7 +42,7 @@
             align-items: center;
         }
 
-        /* --- ЭКРАН АВТОРИЗАЦИИ (БЛОКИРУЕТ ВСЁ) --- */
+        /* --- ЭКРАН АВТОРИЗАЦИИ FIREBASE --- */
         #auth-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -489,20 +489,20 @@
     <audio id="audioHoldMusic" src="hold.mp3"></audio>
 
     <script>
-        // --- КОНФИГУРАЦИЯ FIREBASE (Вставьте свои ключи из консоли Firebase) ---
+        // --- КОНФИГУРАЦИЯ FIREBASE (Ваши ключи) ---
         const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_PROJECT_ID.appspot.com",
-            messagingSenderId: "YOUR_SENDER_ID",
-            appId: "YOUR_APP_ID"
+            apiKey: "AIzaSyDw-Mz2zY7N9H3MHJVSgcVlGM2MxW3USt8",
+            authDomain: "redribbonportal-5aded.firebaseapp.com",
+            projectId: "redribbonportal-5aded",
+            storageBucket: "redribbonportal-5aded.firebasestorage.app",
+            messagingSenderId: "434648793375",
+            appId: "1:434648793375:web:c7ad854513eac0a39b702a",
+            measurementId: "G-GQYX9KQNGB"
         };
 
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
 
-        // Режим авторизации: вهход или регистрация
         let isRegisterMode = false;
 
         function toggleAuthMode() {
@@ -525,16 +525,11 @@
             }
 
             if (isRegisterMode) {
-                // Создание аккаунта
                 auth.createUserWithEmailAndPassword(email, pass)
-                    .then((userCredential) => {
-                        console.log("Аккаунт создан:", userCredential.user.email);
-                    })
                     .catch((error) => {
                         errDiv.innerText = "Ошибка: " + error.message;
                     });
             } else {
-                // Вход в аккаунт
                 auth.signInWithEmailAndPassword(email, pass)
                     .catch((error) => {
                         errDiv.innerText = "Ошибка входа: Неверный email или пароль";
@@ -546,15 +541,14 @@
             auth.signOut();
         }
 
-        // Отслеживание состояния входа (Главный страж безопасности)
+        // Отслеживание состояния входа
         auth.onAuthStateChanged((user) => {
             if (user) {
-                // Пользователь вошел — показываем сайт
                 document.getElementById('auth-overlay').style.display = 'none';
                 document.getElementById('main-content').style.display = 'flex';
                 document.getElementById('userEmailBadge').innerText = user.email;
 
-                // Проверка: если зашел Глеб (укажите email владельца), даем полный доступ
+                // Если почта владельца (содержит "gleb" или совпадает с админской) — полный доступ
                 if (user.email.toLowerCase().includes("gleb") || user.email === "admin@redribbon.studio") {
                     document.getElementById('badgeSanTrope').innerText = "Доступно (Админ)";
                     document.getElementById('badgeSanTrope').className = "access-badge access-yes";
@@ -562,7 +556,6 @@
                     document.getElementById('badgeBaseCom').className = "access-badge access-yes";
                 }
             } else {
-                // Пользователь не вошел — показываем модалку входа, скрываем сайт
                 document.getElementById('auth-overlay').style.display = 'flex';
                 document.getElementById('main-content').style.display = 'none';
             }
