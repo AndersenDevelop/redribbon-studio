@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RedRibbon Studio — Официальный сайт</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+        h1 { color: #ff4d4d; }
+        .card {
+            background: #1e1e1e;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            border: 1px solid #333;
+        }
+        button {
+            background: #ff4d4d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>RedRibbon Studio</h1>
+    <p>Проектирование и разработка игровых и веб-решений</p>
+
+    <div class="card">
+        <h2>Наши проекты</h2>
+        <p>🎮 <b>SanTrope Vanilla</b></p>
+        <p>💬 <b>BaseCom Messenger</b></p>
+        <p>📖 <b>Визуальная новелла «Застывший взгляд Аски»</b></p>
+    </div>
+
+    <div class="card">
+        <h2>Поддержка и Голосовой канал</h2>
+        <p>Нажмите кнопку ниже для тестирования звукового фонового приветствия или связи:</p>
+        <button onclick="playAudio()">🔊 Включить фоновый звук / Тест АТС</button>
+        
+        <audio id="bgAudio" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"></audio>
+    </div>
+
+    <script>
+        function playAudio() {
+            var audio = document.getElementById("bgAudio");
+            if (audio.paused) {
+                audio.play();
+                alert("Аудио воспроизводится!");
+            } else {
+                audio.pause();
+            }
+        }
+    </script>
+</body>
+</html>
