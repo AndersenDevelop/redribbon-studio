@@ -3,8 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RedRibbon Studio — Official Portal & Cloud Telecom</title>
+    <title>RedRibbon Studio — Secure Portal & Cloud Telecom</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Подключаем Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+
     <style>
         :root {
             --bg-grad: linear-gradient(135deg, #070709 0%, #120507 50%, #050507 100%);
@@ -37,15 +42,12 @@
             align-items: center;
         }
 
-        /* --- ЭКРАН АВТОРИЗАЦИИ --- */
+        /* --- ЭКРАН АВТОРИЗАЦИИ (БЛОКИРУЕТ ВСЁ) --- */
         #auth-overlay {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(5, 5, 7, 0.95);
-            backdrop-filter: blur(20px);
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(5, 5, 7, 0.97);
+            backdrop-filter: blur(25px);
             z-index: 9999;
             display: flex;
             justify-content: center;
@@ -126,7 +128,15 @@
         .btn-primary:active { transform: scale(0.98); }
         .auth-error { color: var(--accent-red); font-size: 0.85rem; margin-top: 12px; min-height: 20px; }
 
-        /* --- ОСНОВНОЙ КОНТЕНТ (Скрыт до входа) --- */
+        .auth-switch {
+            margin-top: 20px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+        .auth-switch span { color: var(--accent-red); font-weight: 600; text-decoration: underline; }
+
+        /* --- ОСНОВНОЙ КОНТЕНТ (СКРЫТ ДО ВХОДА) --- */
         #main-content {
             display: none;
             width: 100%;
@@ -156,6 +166,12 @@
             margin: 0;
         }
 
+        .user-panel {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
         .user-badge {
             background: rgba(255, 42, 75, 0.1);
             border: 1px solid var(--accent-red);
@@ -164,6 +180,18 @@
             font-size: 0.85rem;
             font-weight: 600;
         }
+
+        .btn-logout {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--card-border);
+            color: var(--text-muted);
+            padding: 8px 14px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: var(--transition);
+        }
+        .btn-logout:hover { color: white; border-color: var(--accent-red); }
 
         /* Сетки контента */
         .grid-container {
@@ -196,7 +224,6 @@
             margin-bottom: 18px;
         }
 
-        /* Проекты с ограничением доступа */
         .project-row {
             background: rgba(255,255,255,0.02);
             border: 1px solid rgba(255,255,255,0.04);
@@ -221,11 +248,10 @@
         .access-no { background: rgba(255, 42, 75, 0.15); color: var(--accent-red); border: 1px solid var(--accent-red); }
         .access-yes { background: rgba(0, 230, 118, 0.15); color: var(--accent-green); border: 1px solid var(--accent-green); }
 
-        /* О компании и владельце */
         .about-text { font-size: 0.92rem; line-height: 1.6; color: #d0d0d8; margin-bottom: 12px; }
         .owner-highlight { color: var(--accent-gold); font-weight: 600; }
 
-        /* --- ПЛАВАЮЩИЕ КНОПКИ СПРАВА СНИЗУ --- */
+        /* ПЛАВАЮЩИЕ КНОПКИ СПРАВА СНИЗУ */
         .floating-dock {
             position: fixed;
             bottom: 25px;
@@ -240,21 +266,16 @@
             background: var(--card-bg);
             border: 1px solid var(--card-border);
             color: white;
-            width: 56px;
-            height: 56px;
+            width: 56px; height: 56px;
             border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 1.4rem;
-            cursor: pointer;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 1.4rem; cursor: pointer;
             box-shadow: 0 8px 25px rgba(0,0,0,0.5);
             transition: var(--transition);
         }
-
         .float-btn:hover { transform: scale(1.08); border-color: var(--accent-red); }
 
-        /* --- МОДАЛЬНОЕ ОКНО ЧАТА --- */
+        /* МОДАЛЬНЫЕ ОКНА */
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -271,17 +292,9 @@
             background: var(--card-bg);
             border: 1px solid var(--card-border);
             border-radius: 20px;
-            width: 100%;
-            max-width: 380px;
-            padding: 24px;
-            text-align: center;
+            width: 100%; max-width: 380px;
+            padding: 24px; text-align: center;
             box-shadow: 0 15px 40px rgba(0,0,0,0.8);
-            animation: modalPop 0.3s ease;
-        }
-
-        @keyframes modalPop {
-            0% { transform: scale(0.9); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
         }
 
         .modal-card h3 { color: var(--accent-red); margin-top: 0; }
@@ -293,19 +306,13 @@
             border-radius: 10px; font-weight: 600; cursor: pointer;
         }
 
-        /* --- МОДАЛЬНОЕ ОКНО АТС ВИДЖЕТА --- */
-        #call-modal .modal-card {
-            max-width: 420px;
-            text-align: left;
-        }
+        #call-modal .modal-card { max-width: 420px; text-align: left; }
 
         .ats-display {
             background: #040406;
             border: 1px solid rgba(255, 42, 75, 0.3);
-            border-radius: 12px;
-            padding: 16px;
-            text-align: center;
-            margin-bottom: 20px;
+            border-radius: 12px; padding: 16px;
+            text-align: center; margin-bottom: 20px;
         }
 
         .status-dot {
@@ -321,11 +328,8 @@
         .ats-screen-txt { font-size: 0.9rem; margin-top: 6px; font-weight: 500; min-height: 36px; display: flex; align-items: center; justify-content: center; }
 
         .numpad {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            max-width: 240px;
-            margin: 0 auto;
+            display: grid; grid-template-columns: repeat(3, 1fr);
+            gap: 10px; max-width: 240px; margin: 0 auto;
         }
 
         .btn-num {
@@ -333,9 +337,8 @@
             border: 1px solid var(--card-border);
             color: white; font-size: 1.1rem; font-weight: 600;
             padding: 14px; border-radius: 10px; cursor: pointer;
-            transition: 0.15s;
         }
-        .btn-num:active { background: var(--accent-red); transform: scale(0.95); }
+        .btn-num:active { background: var(--accent-red); }
 
         .call-actions {
             display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
@@ -348,24 +351,28 @@
 </head>
 <body>
 
-    <!-- ЭКРАН ВХОДА (ЛОГИН / ПАРОЛЬ) -->
+    <!-- ЭКРАН АВТОРИЗАЦИИ FIREBASE -->
     <div id="auth-overlay">
         <div class="auth-card">
-            <h2>REDRIBBON</h2>
-            <p>Закрытый контур студии разработки</p>
+            <h2 id="authTitle">REDRIBBON</h2>
+            <p id="authSubtitle">Авторизация в закрытом контуре</p>
             
             <div class="form-group">
-                <label>Логин сотрудника</label>
-                <input type="text" id="loginInput" class="form-input" placeholder="Введите логин...">
+                <label>Эл. почта (Email)</label>
+                <input type="email" id="emailInput" class="form-input" placeholder="name@redribbon.studio">
             </div>
 
             <div class="form-group">
-                <label>Пароль доступа</label>
-                <input type="password" id="passwordInput" class="form-input" placeholder="••••••••">
+                <label>Пароль</label>
+                <input type="password" id="passInput" class="form-input" placeholder="••••••••">
             </div>
 
-            <button class="btn-primary" onclick="handleLogin()">Войти в систему</button>
+            <button id="authBtn" class="btn-primary" onclick="handleAuthAction()">Войти</button>
             <div id="authError" class="auth-error"></div>
+
+            <div class="auth-switch" onclick="toggleAuthMode()">
+                <span id="switchText">Нет аккаунта? Зарегистрироваться</span>
+            </div>
         </div>
     </div>
 
@@ -375,64 +382,52 @@
             <div class="logo-area">
                 <h1>REDRIBBON STUDIO</h1>
             </div>
-            <div id="userBadge" class="user-badge">Сотрудник</div>
+            <div class="user-panel">
+                <div id="userEmailBadge" class="user-badge">Сотрудник</div>
+                <button class="btn-logout" onclick="logoutUser()">Выйти</button>
+            </div>
         </header>
 
         <div class="grid-container">
-            <!-- Левая колонка: Информация и проекционные права -->
             <div>
                 <div class="card">
                     <h3>О компании & Владелец</h3>
-                    <p class="about-text">
-                        Студия разработки **RedRibbon** — это независимое творческое объединение, создающее передовые интерактивные продукты, игровые миры и программное обеспечение.
-                    </p>
-                    <p class="about-text">
-                        Основатель и идейный вдохновитель проекта — <span class="owner-highlight">Глеб</span>. Под его руководством реализуются все ключевые направления студии.
-                    </p>
+                    <p class="about-text">Студия разработки **RedRibbon** — независимое объединение, создающее интерактивные продукты и игровые вселенные.</p>
+                    <p class="about-text">Основатель и руководитель — <span class="owner-highlight">Глеб</span>.</p>
                 </div>
 
                 <div class="card">
-                    <h3>Статус проектов (Контроль доступа)</h3>
+                    <h3>Статус проектов (Доступ)</h3>
                     
                     <div class="project-row">
-                        <div class="project-info">
-                            <h4>SanTrope Vanilla</h4>
-                            <p>Игровой сервер #1</p>
-                        </div>
+                        <div class="project-info"><h4>SanTrope Vanilla</h4><p>Игровой сервер #1</p></div>
                         <span id="badgeSanTrope" class="access-badge access-no">У вас нет доступа</span>
                     </div>
 
                     <div class="project-row">
-                        <div class="project-info">
-                            <h4>BaseCom Messenger</h4>
-                            <p>Защищенный мессенджер</p>
-                        </div>
+                        <div class="project-info"><h4>BaseCom Messenger</h4><p>Защищенный мессенджер</p></div>
                         <span id="badgeBaseCom" class="access-badge access-no">У вас нет доступа</span>
                     </div>
 
                     <div class="project-row">
-                        <div class="project-info">
-                            <h4>«Застывший взгляд Аски»</h4>
-                            <p>Визуальная новелла</p>
-                        </div>
+                        <div class="project-info"><h4>«Застывший взгляд Аски»</h4><p>Визуальная новелла</p></div>
                         <span class="access-badge access-yes">Доступно</span>
                     </div>
                 </div>
             </div>
 
-            <!-- Правая колонка: Цели и целиком панель -->
             <div>
                 <div class="card">
                     <h3>Цели студии RedRibbon</h3>
                     <p class="about-text">• Создание уникальных игровых экосистем высокого уровня.</p>
                     <p class="about-text">• Разработка собственного безопасного мессенджера BaseCom.</p>
-                    <p class="about-text">• Погружение пользователей в глубокие сюжеты визуальных новелл.</p>
-                    <p class="about-text">• Автоматизация внутренних процессов с помощью облачной АТС.</p>
+                    <p class="about-text">• Погружение пользователей в глубокие сюжеты новелл.</p>
+                    <p class="about-text">• Интеграция передовой облачной АТС.</p>
                 </div>
 
                 <div class="card">
                     <h3>Панель сотрудника</h3>
-                    <p class="about-text">Добро пожаловать в рабочую зону. Используйте виджеты справа внизу для связи с техподдержкой или запуска голосового интерфейса АТС.</p>
+                    <p class="about-text">Используйте виджеты справа внизу для обращения в техподдержку или тестирования звонков АТС.</p>
                 </div>
             </div>
         </div>
@@ -440,9 +435,7 @@
 
     <!-- ПЛАВАЮЩИЕ КНОПКИ СПРАВА СНИЗУ -->
     <div class="floating-dock">
-        <!-- Кнопка чата -->
         <button class="float-btn" onclick="openChatModal()" title="Чат поддержки">💬</button>
-        <!-- Кнопка звонка АТС -->
         <button class="float-btn" onclick="openCallModal()" title="Позвонить онлайн">📞</button>
     </div>
 
@@ -459,7 +452,6 @@
     <div id="call-modal" class="modal-overlay">
         <div class="modal-card">
             <h3>Облачная АТС</h3>
-            
             <div class="ats-display">
                 <div class="ats-status-lbl">
                     <span id="dot" class="status-dot"></span>
@@ -467,7 +459,6 @@
                 </div>
                 <div id="screenText" class="ats-screen-txt">Нажмите «Вызов» для соединения</div>
             </div>
-
             <div class="numpad">
                 <button class="btn-num" onclick="pressKey('1')">1</button>
                 <button class="btn-num" onclick="pressKey('2')">2</button>
@@ -482,12 +473,10 @@
                 <button class="btn-num" onclick="pressKey('0')">0</button>
                 <button class="btn-num" onclick="pressKey('#')">#</button>
             </div>
-
             <div class="call-actions">
                 <button class="btn-call-act btn-start" onclick="startCall()">📞 Вызов</button>
                 <button class="btn-call-act btn-stop" onclick="endCall()">❌ Сброс</button>
             </div>
-            
             <div style="text-align: center; margin-top: 15px;">
                 <button class="btn-close" onclick="closeCallModal()">Закрыть</button>
             </div>
@@ -500,56 +489,91 @@
     <audio id="audioHoldMusic" src="hold.mp3"></audio>
 
     <script>
-        // ЛОГИКА АВТОРИЗАЦИИ
-        function handleLogin() {
-            const login = document.getElementById('loginInput').value.trim();
-            const pass = document.getElementById('passwordInput').value.trim();
-            const err = document.getElementById('authError');
+        // --- КОНФИГУРАЦИЯ FIREBASE (Вставьте свои ключи из консоли Firebase) ---
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
 
-            // Условие входа: Глеб (владелец) или обычный сотрудник
-            if (login === "Глеб" && pass === "gleb123") {
-                // Владелец с полным доступом
-                grantAccess(true, "Владелец: Глеб");
-            } else if (login !== "" && pass !== "") {
-                // Обычный сотрудник (без доступа к SanTrope и BaseCom)
-                grantAccess(false, "Сотрудник: " + login);
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+
+        // Режим авторизации: вهход или регистрация
+        let isRegisterMode = false;
+
+        function toggleAuthMode() {
+            isRegisterMode = !isRegisterMode;
+            document.getElementById('authTitle').innerText = isRegisterMode ? "РЕГИСТРАЦИЯ" : "REDRIBBON";
+            document.getElementById('authSubtitle').innerText = isRegisterMode ? "Создание учетной записи сотрудника" : "Авторизация в закрытом контуре";
+            document.getElementById('authBtn').innerText = isRegisterMode ? "Зарегистрироваться" : "Войти";
+            document.getElementById('switchText').innerText = isRegisterMode ? "Уже есть аккаунт? Войти" : "Нет аккаунта? Зарегистрироваться";
+            document.getElementById('authError').innerText = "";
+        }
+
+        function handleAuthAction() {
+            const email = document.getElementById('emailInput').value.trim();
+            const pass = document.getElementById('passInput').value.trim();
+            const errDiv = document.getElementById('authError');
+
+            if (!email || !pass) {
+                errDiv.innerText = "Заполните все поля!";
+                return;
+            }
+
+            if (isRegisterMode) {
+                // Создание аккаунта
+                auth.createUserWithEmailAndPassword(email, pass)
+                    .then((userCredential) => {
+                        console.log("Аккаунт создан:", userCredential.user.email);
+                    })
+                    .catch((error) => {
+                        errDiv.innerText = "Ошибка: " + error.message;
+                    });
             } else {
-                err.innerText = "Введите логин и пароль!";
+                // Вход в аккаунт
+                auth.signInWithEmailAndPassword(email, pass)
+                    .catch((error) => {
+                        errDiv.innerText = "Ошибка входа: Неверный email или пароль";
+                    });
             }
         }
 
-        function grantAccess(isOwner, roleName) {
-            document.getElementById('auth-overlay').style.display = 'none';
-            document.getElementById('main-content').style.display = 'flex';
-            document.getElementById('userBadge').innerText = roleName;
+        function logoutUser() {
+            auth.signOut();
+        }
 
-            if (isOwner) {
-                // Открываем права для владельца
-                document.getElementById('badgeSanTrope').innerText = "Доступно (Админ)";
-                document.getElementById('badgeSanTrope').className = "access-badge access-yes";
-                
-                document.getElementById('badgeBaseCom').innerText = "Доступно (Разработка)";
-                document.getElementById('badgeBaseCom').className = "access-badge access-yes";
+        // Отслеживание состояния входа (Главный страж безопасности)
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                // Пользователь вошел — показываем сайт
+                document.getElementById('auth-overlay').style.display = 'none';
+                document.getElementById('main-content').style.display = 'flex';
+                document.getElementById('userEmailBadge').innerText = user.email;
+
+                // Проверка: если зашел Глеб (укажите email владельца), даем полный доступ
+                if (user.email.toLowerCase().includes("gleb") || user.email === "admin@redribbon.studio") {
+                    document.getElementById('badgeSanTrope').innerText = "Доступно (Админ)";
+                    document.getElementById('badgeSanTrope').className = "access-badge access-yes";
+                    document.getElementById('badgeBaseCom').innerText = "Доступно (Разработка)";
+                    document.getElementById('badgeBaseCom').className = "access-badge access-yes";
+                }
+            } else {
+                // Пользователь не вошел — показываем модалку входа, скрываем сайт
+                document.getElementById('auth-overlay').style.display = 'flex';
+                document.getElementById('main-content').style.display = 'none';
             }
-        }
+        });
 
-        // МОДАЛЬНЫЕ ОКНА (ЧАТ И ЗВОНОК)
-        function openChatModal() {
-            document.getElementById('chat-modal').style.display = 'flex';
-        }
-        function closeChatModal() {
-            document.getElementById('chat-modal').style.display = 'none';
-        }
+        // МОДАЛКИ И АТС ВИДЖЕТ
+        function openChatModal() { document.getElementById('chat-modal').style.display = 'flex'; }
+        function closeChatModal() { document.getElementById('chat-modal').style.display = 'none'; }
+        function openCallModal() { document.getElementById('call-modal').style.display = 'flex'; }
+        function closeCallModal() { endCall(); document.getElementById('call-modal').style.display = 'none'; }
 
-        function openCallModal() {
-            document.getElementById('call-modal').style.display = 'flex';
-        }
-        function closeCallModal() {
-            endCall();
-            document.getElementById('call-modal').style.display = 'none';
-        }
-
-        // ЛОГИКА АТС И ЗВУКОВЫХ СЦЕНАРИЕВ
         let inCall = false;
         let inputBuffer = "";
         const PIN = "1337";
@@ -566,46 +590,36 @@
 
         function stopAllAudio() {
             [audioWelcome, audioBusy, audioHoldMusic].forEach(a => {
-                a.pause();
-                a.currentTime = 0;
-                a.onended = null;
+                a.pause(); a.currentTime = 0; a.onended = null;
             });
         }
 
         function startCall() {
-            inCall = true;
-            inputBuffer = "";
-            stopAllAudio();
+            inCall = true; inputBuffer = ""; stopAllAudio();
             setAtsState("Звонок активен", "Соединение с RedRibbon...", true);
-
-            audioWelcome.play().catch(e => {
-                setAtsState("Ошибка", "Файл welcome.mp3 не найден в корне", true);
-            });
+            audioWelcome.play().catch(e => setAtsState("Ошибка", "Файл welcome.mp3 не найден", true));
         }
 
         function endCall() {
-            inCall = false;
-            inputBuffer = "";
-            stopAllAudio();
+            inCall = false; inputBuffer = ""; stopAllAudio();
             setAtsState("Линия свободна", "Нажмите «Вызов» для связи", false);
         }
 
         function pressKey(key) {
             if (!inCall) return;
-            inputBuffer += key;
-            stopAllAudio();
+            inputBuffer += key; stopAllAudio();
 
             if (inputBuffer === "1") {
-                setAtsState("Ветка: SanTrope Vanilla", "Переадресация на администрацию...");
+                setAtsState("Ветка: SanTrope Vanilla", "Переадресация...");
                 startHoldCycle();
             } else if (inputBuffer === "2") {
-                setAtsState("Ветка: BaseCom", "Переадресация на отдел разработки...");
+                setAtsState("Ветка: BaseCom", "Переадресация...");
                 startHoldCycle();
             } else if (inputBuffer === "3") {
                 setAtsState("Ветка: Новелла", "Проект «Застывший взгляд Аски»...");
                 startHoldCycle();
             } else if (inputBuffer === "4") {
-                setAtsState("Ветка: Реклама", "Отдел сотрудничества и PR...");
+                setAtsState("Ветка: Реклама", "Отдел PR...");
                 startHoldCycle();
             } else if (inputBuffer === "9") {
                 setAtsState("Служебный доступ", "Введите PIN-код и нажмите #");
@@ -620,22 +634,12 @@
             }
         }
 
-        // Бесконечный цикл ожидания: Голос (busy.mp3) ➔ Музыка (hold.mp3) ➔ Повтор
         function startHoldCycle() {
             if (!inCall) return;
             setAtsState("Ожидание оператора", "Все операторы заняты, пожалуйста ожидайте...");
-
             audioBusy.play().catch(e => console.log("busy.mp3 not found"));
-
-            audioBusy.onended = function() {
-                if (!inCall) return;
-                audioHoldMusic.play().catch(e => console.log("hold.mp3 not found"));
-            };
-
-            audioHoldMusic.onended = function() {
-                if (!inCall) return;
-                startHoldCycle();
-            };
+            audioBusy.onended = () => { if (inCall) audioHoldMusic.play().catch(e => console.log("hold.mp3 not found")); };
+            audioHoldMusic.onended = () => { if (inCall) startHoldCycle(); };
         }
     </script>
 </body>
