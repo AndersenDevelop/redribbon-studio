@@ -133,7 +133,7 @@
         .badge-beta { background: rgba(255, 183, 3, 0.15); color: var(--accent-gold); border: 1px solid var(--accent-gold); }
         .badge-dev { background: rgba(255, 42, 75, 0.15); color: var(--accent-red); border: 1px solid var(--accent-red); }
 
-        /* АТС Дисплей */
+        /* Дисплей АТС */
         .ats-display {
             background: #050507;
             border: 1px solid rgba(255, 42, 75, 0.2);
@@ -191,7 +191,7 @@
             transform: scale(0.95);
         }
 
-        /* Кнопки действий */
+        /* Кнопки вызова */
         .action-row {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -296,17 +296,16 @@
         </div>
     </div>
 
-    <!-- ТЕГИ АУДИО (Сюда подставляются ваши MP3 файлы) -->
-    <audio id="audioWelcome" src="audio/welcome.mp3"></audio>
-    <audio id="audioBusy" src="audio/busy.mp3"></audio>
-    <audio id="audioHoldMusic" src="audio/hold.mp3"></audio>
+    <!-- АУДИОФАЙЛЫ В КОРНЕ РЕПОЗИТОРИЯ -->
+    <audio id="audioWelcome" src="welcome.mp3"></audio>
+    <audio id="audioBusy" src="busy.mp3"></audio>
+    <audio id="audioHoldMusic" src="hold.mp3"></audio>
 
     <script>
         let inCall = false;
         let inputBuffer = "";
-        const PIN = "1337";
+        const PIN = "1337"; // Пин-код для служебной линии
 
-        // Получаем элементы аудио
         const audioWelcome = document.getElementById('audioWelcome');
         const audioBusy = document.getElementById('audioBusy');
         const audioHoldMusic = document.getElementById('audioHoldMusic');
@@ -321,28 +320,30 @@
             document.getElementById('screen-text').innerText = text;
         }
 
-        // Вспомогательная функция остановки всех аудио
+        // Остановка всех звуковых потоков
         function stopAllAudio() {
             [audioWelcome, audioBusy, audioHoldMusic].forEach(a => {
                 a.pause();
                 a.currentTime = 0;
-                a.onended = null; // сбрасываем цепочки
+                a.onended = null; // Отменяем зацикленные подписки
             });
         }
 
+        // Запуск звонка
         function startCall() {
             inCall = true;
             inputBuffer = "";
             stopAllAudio();
             setStatus("Звонок активен", true);
-            setScreenText("Приветствуем в RedRibbon Studio! Наберите цифру");
+            setScreenText("Приветствуем в RedRibbon Studio! Выберите ветку...");
 
-            // Включаем ваше приветственное голосовое MP3
+            // Воспроизводим приветственное сообщение welcome.mp3 из корня
             audioWelcome.play().catch(e => {
-                setScreenText("Ошибка: Добавьте аудиофайл welcome.mp3");
+                setScreenText("Ошибка: Убедитесь, что welcome.mp3 загружен в корень");
             });
         }
 
+        // Завершение звонка
         function endCall() {
             inCall = false;
             inputBuffer = "";
@@ -351,30 +352,31 @@
             setScreenText("Нажмите «Вызов» для связи");
         }
 
+        // Нажатие на кнопки Numpad
         function pressKey(key) {
             if (!inCall) return;
             inputBuffer += key;
 
-            stopAllAudio(); // При нажатии клавиши прерываем текущий звук
+            stopAllAudio(); // Прерываем текущий звук при вводе команды
 
             if (inputBuffer === "1") {
-                setScreenText("Перевод на SanTrope Vanilla...");
+                setScreenText("Ветка SanTrope Vanilla");
                 startHoldCycle();
             } else if (inputBuffer === "2") {
-                setScreenText("Перевод на отдел BaseCom...");
+                setScreenText("Ветка BaseCom Messenger");
                 startHoldCycle();
             } else if (inputBuffer === "3") {
-                setScreenText("Перевод на команду Новеллы...");
+                setScreenText("Ветка «Застывший взгляд Аски»");
                 startHoldCycle();
             } else if (inputBuffer === "4") {
-                setScreenText("Перевод на отдел Рекламы...");
+                setScreenText("Отдел Рекламы и PR");
                 startHoldCycle();
             } else if (inputBuffer === "9") {
                 setScreenText("Введите PIN-код и нажмите #");
             } else if (inputBuffer.endsWith("#")) {
                 let code = inputBuffer.replace("#", "").trim();
                 if (code.endsWith(PIN)) {
-                    setScreenText("Авторизация успешна! Служебная линия.");
+                    setScreenText("Служебная линия. Доступ разрешен!");
                 } else {
                     setScreenText("Неверный PIN-код!");
                     inputBuffer = "";
@@ -382,25 +384,25 @@
             }
         }
 
-        // БЕСКОНЕЧНЫЙ ЦИКЛ: Голос робота ➔ Музыка ➔ Голос робота ➔ Музыка
+        // Зацикленная цепочка ожидания: Голос ➔ Музыка ➔ Голос ➔ Музыка
         function startHoldCycle() {
             if (!inCall) return;
 
             setScreenText("Все операторы заняты. Пожалуйста, ожидайте...");
 
-            // 1. Воспроизводим ваш голос "Все операторы заняты"
-            audioBusy.play().catch(e => console.log("Файл busy.mp3 не найден"));
+            // 1. Запускаем ваш голос busy.mp3
+            audioBusy.play().catch(e => console.log("Файл busy.mp3 не найден в корне"));
 
-            // 2. Когда фраза закончилась — сразу запускаем музыку
+            // 2. По завершению голоса включаем музыку hold.mp3
             audioBusy.onended = function() {
                 if (!inCall) return;
-                audioHoldMusic.play().catch(e => console.log("Файл hold.mp3 не найден"));
+                audioHoldMusic.play().catch(e => console.log("Файл hold.mp3 не найден в корне"));
             };
 
-            // 3. Когда музыка доиграла до конца — снова запускаем голос "Все операторы заняты"
+            // 3. По завершению музыки снова запускаем весь цикл
             audioHoldMusic.onended = function() {
                 if (!inCall) return;
-                startHoldCycle(); // Зацикливаем по новой!
+                startHoldCycle();
             };
         }
     </script>
