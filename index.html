@@ -5,10 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RedRibbon Studio — Secure Portal & Cloud Telecom</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Подключаем Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 
     <style>
         :root {
@@ -488,8 +484,18 @@
     <audio id="audioBusy" src="busy.mp3"></audio>
     <audio id="audioHoldMusic" src="hold.mp3"></audio>
 
-    <script>
-        // --- КОНФИГУРАЦИЯ FIREBASE (Ваши ключи) ---
+    <!-- МОДУЛЬНЫЙ СКРИПТ FIREBASE (v13.2.0) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-analytics.js";
+        import { 
+            getAuth, 
+            signInWithEmailAndPassword, 
+            createUserWithEmailAndPassword, 
+            signOut, 
+            onAuthStateChanged 
+        } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";
+
         const firebaseConfig = {
             apiKey: "AIzaSyDw-Mz2zY7N9H3MHJVSgcVlGM2MxW3USt8",
             authDomain: "redribbonportal-5aded.firebaseapp.com",
@@ -500,12 +506,13 @@
             measurementId: "G-GQYX9KQNGB"
         };
 
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const auth = getAuth(app);
 
         let isRegisterMode = false;
 
-        function toggleAuthMode() {
+        window.toggleAuthMode = function() {
             isRegisterMode = !isRegisterMode;
             document.getElementById('authTitle').innerText = isRegisterMode ? "РЕГИСТРАЦИЯ" : "REDRIBBON";
             document.getElementById('authSubtitle').innerText = isRegisterMode ? "Создание учетной записи сотрудника" : "Авторизация в закрытом контуре";
@@ -514,7 +521,7 @@
             document.getElementById('authError').innerText = "";
         }
 
-        function handleAuthAction() {
+        window.handleAuthAction = function() {
             const email = document.getElementById('emailInput').value.trim();
             const pass = document.getElementById('passInput').value.trim();
             const errDiv = document.getElementById('authError');
@@ -525,30 +532,28 @@
             }
 
             if (isRegisterMode) {
-                auth.createUserWithEmailAndPassword(email, pass)
+                createUserWithEmailAndPassword(auth, email, pass)
                     .catch((error) => {
                         errDiv.innerText = "Ошибка: " + error.message;
                     });
             } else {
-                auth.signInWithEmailAndPassword(email, pass)
+                signInWithEmailAndPassword(auth, email, pass)
                     .catch((error) => {
                         errDiv.innerText = "Ошибка входа: Неверный email или пароль";
                     });
             }
         }
 
-        function logoutUser() {
-            auth.signOut();
+        window.logoutUser = function() {
+            signOut(auth);
         }
 
-        // Отслеживание состояния входа
-        auth.onAuthStateChanged((user) => {
+        onAuthStateChanged(auth, (user) => {
             if (user) {
                 document.getElementById('auth-overlay').style.display = 'none';
                 document.getElementById('main-content').style.display = 'flex';
                 document.getElementById('userEmailBadge').innerText = user.email;
 
-                // Если почта владельца (содержит "gleb" или совпадает с админской) — полный доступ
                 if (user.email.toLowerCase().includes("gleb") || user.email === "admin@redribbon.studio") {
                     document.getElementById('badgeSanTrope').innerText = "Доступно (Админ)";
                     document.getElementById('badgeSanTrope').className = "access-badge access-yes";
@@ -560,8 +565,10 @@
                 document.getElementById('main-content').style.display = 'none';
             }
         });
+    </script>
 
-        // МОДАЛКИ И АТС ВИДЖЕТ
+    <!-- СКРИПТЫ УПРАВЛЕНИЯ ИНТЕРФЕЙСОМ И АТС -->
+    <script>
         function openChatModal() { document.getElementById('chat-modal').style.display = 'flex'; }
         function closeChatModal() { document.getElementById('chat-modal').style.display = 'none'; }
         function openCallModal() { document.getElementById('call-modal').style.display = 'flex'; }
