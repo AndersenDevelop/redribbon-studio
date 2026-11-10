@@ -3,19 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RedRibbon Studio — Cloud Telecom & Hub</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <title>RedRibbon Studio — Official Portal & Cloud Telecom</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-grad: linear-gradient(135deg, #0a0a0c 0%, #16080a 50%, #08080a 100%);
-            --card-bg: rgba(22, 22, 28, 0.75);
+            --bg-grad: linear-gradient(135deg, #070709 0%, #120507 50%, #050507 100%);
+            --card-bg: rgba(18, 18, 24, 0.85);
             --card-border: rgba(255, 255, 255, 0.08);
             --accent-red: #ff2a4b;
-            --accent-red-glow: rgba(255, 42, 75, 0.4);
+            --accent-red-glow: rgba(255, 42, 75, 0.35);
             --accent-green: #00e676;
             --accent-gold: #ffb703;
-            --text-main: #ffffff;
+            --text-main: #f4f4f6;
             --text-muted: #8e8e9e;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         * {
@@ -36,245 +37,438 @@
             align-items: center;
         }
 
-        header {
+        /* --- ЭКРАН АВТОРИЗАЦИИ --- */
+        #auth-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100%;
-            padding: 40px 20px 20px;
+            height: 100%;
+            background: rgba(5, 5, 7, 0.95);
+            backdrop-filter: blur(20px);
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .auth-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 24px;
+            padding: 40px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
             text-align: center;
         }
 
-        .logo {
-            font-size: 2.2rem;
+        .auth-card h2 {
+            margin-top: 0;
+            color: var(--accent-red);
+            font-size: 1.8rem;
+            letter-spacing: 1px;
+        }
+
+        .auth-card p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 25px;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 14px 16px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            color: white;
+            font-size: 1rem;
+            outline: none;
+            transition: var(--transition);
+        }
+
+        .form-input:focus {
+            border-color: var(--accent-red);
+            box-shadow: 0 0 10px var(--accent-red-glow);
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--accent-red), #cc1130);
+            border: none;
+            border-radius: 12px;
+            color: white;
             font-weight: 700;
-            letter-spacing: 2px;
-            background: linear-gradient(90deg, #ffffff, var(--accent-red));
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 10px;
+            box-shadow: 0 4px 15px var(--accent-red-glow);
+            transition: var(--transition);
+        }
+
+        .btn-primary:active { transform: scale(0.98); }
+        .auth-error { color: var(--accent-red); font-size: 0.85rem; margin-top: 12px; min-height: 20px; }
+
+        /* --- ОСНОВНОЙ КОНТЕНТ (Скрыт до входа) --- */
+        #main-content {
+            display: none;
+            width: 100%;
+            max-width: 1100px;
+            padding: 20px;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        header {
+            width: 100%;
+            padding: 30px 20px;
+            text-align: center;
+            border-bottom: 1px solid var(--card-border);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo-area h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, #fff, var(--accent-red));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             margin: 0;
         }
 
-        .subtitle {
-            color: var(--text-muted);
-            font-size: 0.95rem;
-            margin-top: 6px;
+        .user-badge {
+            background: rgba(255, 42, 75, 0.1);
+            border: 1px solid var(--accent-red);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
         }
 
-        .container {
-            width: 92%;
-            max-width: 960px;
-            margin: 20px auto 40px;
+        /* Сетки контента */
+        .grid-container {
             display: grid;
-            grid-template-columns: 1.1fr 0.9fr;
+            grid-template-columns: 1fr 1fr;
             gap: 24px;
+            width: 100%;
         }
 
-        @media (max-width: 820px) {
-            .container { grid-template-columns: 1fr; }
+        @media (max-width: 850px) {
+            .grid-container { grid-template-columns: 1fr; }
+            header { flex-direction: column; gap: 15px; }
         }
 
-        /* Glassmorphism Карточки */
         .card {
             background: var(--card-bg);
             backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
             border: 1px solid var(--card-border);
             border-radius: 20px;
-            padding: 28px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            padding: 26px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+            margin-bottom: 24px;
         }
 
-        .card-title {
-            font-size: 1.25rem;
-            font-weight: 600;
+        .card h3 {
             margin-top: 0;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+            font-size: 1.2rem;
+            border-bottom: 2px solid var(--accent-red);
+            padding-bottom: 8px;
+            margin-bottom: 18px;
         }
 
-        .card-title::after {
-            content: '';
-            height: 2px;
-            flex-grow: 1;
-            margin-left: 15px;
-            background: linear-gradient(90deg, var(--accent-red), transparent);
-        }
-
-        /* Список проектов */
-        .project-card {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 14px;
-            padding: 16px 20px;
-            margin-bottom: 14px;
+        /* Проекты с ограничением доступа */
+        .project-row {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.04);
+            border-radius: 12px;
+            padding: 14px 18px;
+            margin-bottom: 12px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            transition: transform 0.2s, border-color 0.2s;
         }
 
-        .project-card:hover {
-            transform: translateY(-2px);
-            border-color: rgba(255, 42, 75, 0.3);
-        }
+        .project-info h4 { margin: 0 0 4px 0; font-size: 1rem; }
+        .project-info p { margin: 0; font-size: 0.8rem; color: var(--text-muted); }
 
-        .project-info h4 { margin: 0 0 4px 0; font-size: 1.05rem; }
-        .project-info p { margin: 0; font-size: 0.85rem; color: var(--text-muted); }
-
-        .badge {
+        .access-badge {
             font-size: 0.7rem;
             font-weight: 700;
             padding: 4px 10px;
             border-radius: 20px;
-            letter-spacing: 0.5px;
             text-transform: uppercase;
         }
-        .badge-online { background: rgba(0, 230, 118, 0.15); color: var(--accent-green); border: 1px solid var(--accent-green); }
-        .badge-beta { background: rgba(255, 183, 3, 0.15); color: var(--accent-gold); border: 1px solid var(--accent-gold); }
-        .badge-dev { background: rgba(255, 42, 75, 0.15); color: var(--accent-red); border: 1px solid var(--accent-red); }
+        .access-no { background: rgba(255, 42, 75, 0.15); color: var(--accent-red); border: 1px solid var(--accent-red); }
+        .access-yes { background: rgba(0, 230, 118, 0.15); color: var(--accent-green); border: 1px solid var(--accent-green); }
 
-        /* Дисплей АТС */
+        /* О компании и владельце */
+        .about-text { font-size: 0.92rem; line-height: 1.6; color: #d0d0d8; margin-bottom: 12px; }
+        .owner-highlight { color: var(--accent-gold); font-weight: 600; }
+
+        /* --- ПЛАВАЮЩИЕ КНОПКИ СПРАВА СНИЗУ --- */
+        .floating-dock {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 1000;
+        }
+
+        .float-btn {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            color: white;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.4rem;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+            transition: var(--transition);
+        }
+
+        .float-btn:hover { transform: scale(1.08); border-color: var(--accent-red); }
+
+        /* --- МОДАЛЬНОЕ ОКНО ЧАТА --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(8px);
+            z-index: 2000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .modal-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            width: 100%;
+            max-width: 380px;
+            padding: 24px;
+            text-align: center;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.8);
+            animation: modalPop 0.3s ease;
+        }
+
+        @keyframes modalPop {
+            0% { transform: scale(0.9); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-card h3 { color: var(--accent-red); margin-top: 0; }
+        .modal-card p { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px; }
+        
+        .btn-close {
+            background: rgba(255,255,255,0.08);
+            border: none; color: white; padding: 10px 20px;
+            border-radius: 10px; font-weight: 600; cursor: pointer;
+        }
+
+        /* --- МОДАЛЬНОЕ ОКНО АТС ВИДЖЕТА --- */
+        #call-modal .modal-card {
+            max-width: 420px;
+            text-align: left;
+        }
+
         .ats-display {
-            background: #050507;
-            border: 1px solid rgba(255, 42, 75, 0.2);
-            border-radius: 14px;
-            padding: 18px;
+            background: #040406;
+            border: 1px solid rgba(255, 42, 75, 0.3);
+            border-radius: 12px;
+            padding: 16px;
             text-align: center;
             margin-bottom: 20px;
-            box-shadow: inset 0 0 15px rgba(0,0,0,0.8);
         }
 
-        .status-indicator {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: var(--text-muted);
-            margin-right: 6px;
+        .status-dot {
+            display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+            background: var(--text-muted); margin-right: 6px;
         }
-        .status-active { background: var(--accent-green); box-shadow: 0 0 8px var(--accent-green); }
+        .status-on { background: var(--accent-green); box-shadow: 0 0 8px var(--accent-green); }
         .status-call { background: var(--accent-red); box-shadow: 0 0 8px var(--accent-red); animation: pulse 1.5s infinite; }
 
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.3; }
-            100% { opacity: 1; }
-        }
+        @keyframes pulse { 0% {opacity:1;} 50% {opacity:0.3;} 100% {opacity:1;} }
 
-        .ats-status-text { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
-        .ats-screen-text { font-size: 0.95rem; margin-top: 8px; color: var(--text-main); font-weight: 500; min-height: 40px; display: flex; align-items: center; justify-content: center; }
+        .ats-status-lbl { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; }
+        .ats-screen-txt { font-size: 0.9rem; margin-top: 6px; font-weight: 500; min-height: 36px; display: flex; align-items: center; justify-content: center; }
 
-        /* Клавиатура */
-        .numpad-grid {
+        .numpad {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            max-width: 280px;
+            gap: 10px;
+            max-width: 240px;
             margin: 0 auto;
         }
 
         .btn-num {
-            background: rgba(255, 255, 255, 0.04);
+            background: rgba(255,255,255,0.04);
             border: 1px solid var(--card-border);
-            color: var(--text-main);
-            font-size: 1.2rem;
-            font-weight: 600;
-            padding: 16px;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.15s ease;
+            color: white; font-size: 1.1rem; font-weight: 600;
+            padding: 14px; border-radius: 10px; cursor: pointer;
+            transition: 0.15s;
         }
+        .btn-num:active { background: var(--accent-red); transform: scale(0.95); }
 
-        .btn-num:active {
-            background: var(--accent-red);
-            box-shadow: 0 0 12px var(--accent-red-glow);
-            transform: scale(0.95);
+        .call-actions {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+            max-width: 240px; margin: 15px auto 0;
         }
-
-        /* Кнопки вызова */
-        .action-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            max-width: 280px;
-            margin: 16px auto 0;
-        }
-
-        .btn-action {
-            border: none;
-            padding: 14px;
-            border-radius: 12px;
-            font-weight: 700;
-            font-size: 0.95rem;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .btn-start {
-            background: linear-gradient(135deg, #00b09b, #96c93d);
-            color: #000;
-            box-shadow: 0 4px 15px rgba(0, 176, 155, 0.3);
-        }
-
-        .btn-stop {
-            background: linear-gradient(135deg, #ff0844, #ffb199);
-            color: #fff;
-            box-shadow: 0 4px 15px rgba(255, 8, 68, 0.3);
-        }
-
-        .btn-action:active { transform: scale(0.96); }
+        .btn-call-act { border: none; padding: 12px; border-radius: 10px; font-weight: 700; cursor: pointer; }
+        .btn-start { background: #00e676; color: #000; }
+        .btn-stop { background: var(--accent-red); color: #fff; }
     </style>
 </head>
 <body>
 
-    <header>
-        <div class="logo">REDRIBBON STUDIO</div>
-        <div class="subtitle">Интерактивный портал & Облачная АТС</div>
-    </header>
-
-    <div class="container">
-        <!-- Список проектов -->
-        <div class="card">
-            <h3 class="card-title">Наши Проекты</h3>
+    <!-- ЭКРАН ВХОДА (ЛОГИН / ПАРОЛЬ) -->
+    <div id="auth-overlay">
+        <div class="auth-card">
+            <h2>REDRIBBON</h2>
+            <p>Закрытый контур студии разработки</p>
             
-            <div class="project-card">
-                <div class="project-info">
-                    <h4>SanTrope Vanilla</h4>
-                    <p>Игровой сервер #1 • Главный Админ</p>
-                </div>
-                <span class="badge badge-online">Online</span>
+            <div class="form-group">
+                <label>Логин сотрудника</label>
+                <input type="text" id="loginInput" class="form-input" placeholder="Введите логин...">
             </div>
 
-            <div class="project-card">
-                <div class="project-info">
-                    <h4>BaseCom Messenger</h4>
-                    <p>Безопасный мессенджер</p>
-                </div>
-                <span class="badge badge-beta">Beta</span>
+            <div class="form-group">
+                <label>Пароль доступа</label>
+                <input type="password" id="passwordInput" class="form-input" placeholder="••••••••">
             </div>
 
-            <div class="project-card">
-                <div class="project-info">
-                    <h4>«Застывший взгляд Аски»</h4>
-                    <p>Визуальная новелла</p>
+            <button class="btn-primary" onclick="handleLogin()">Войти в систему</button>
+            <div id="authError" class="auth-error"></div>
+        </div>
+    </div>
+
+    <!-- ОСНОВНОЙ ПОРТАЛ -->
+    <div id="main-content">
+        <header>
+            <div class="logo-area">
+                <h1>REDRIBBON STUDIO</h1>
+            </div>
+            <div id="userBadge" class="user-badge">Сотрудник</div>
+        </header>
+
+        <div class="grid-container">
+            <!-- Левая колонка: Информация и проекционные права -->
+            <div>
+                <div class="card">
+                    <h3>О компании & Владелец</h3>
+                    <p class="about-text">
+                        Студия разработки **RedRibbon** — это независимое творческое объединение, создающее передовые интерактивные продукты, игровые миры и программное обеспечение.
+                    </p>
+                    <p class="about-text">
+                        Основатель и идейный вдохновитель проекта — <span class="owner-highlight">Глеб</span>. Под его руководством реализуются все ключевые направления студии.
+                    </p>
                 </div>
-                <span class="badge badge-dev">In Dev</span>
+
+                <div class="card">
+                    <h3>Статус проектов (Контроль доступа)</h3>
+                    
+                    <div class="project-row">
+                        <div class="project-info">
+                            <h4>SanTrope Vanilla</h4>
+                            <p>Игровой сервер #1</p>
+                        </div>
+                        <span id="badgeSanTrope" class="access-badge access-no">У вас нет доступа</span>
+                    </div>
+
+                    <div class="project-row">
+                        <div class="project-info">
+                            <h4>BaseCom Messenger</h4>
+                            <p>Защищенный мессенджер</p>
+                        </div>
+                        <span id="badgeBaseCom" class="access-badge access-no">У вас нет доступа</span>
+                    </div>
+
+                    <div class="project-row">
+                        <div class="project-info">
+                            <h4>«Застывший взгляд Аски»</h4>
+                            <p>Визуальная новелла</p>
+                        </div>
+                        <span class="access-badge access-yes">Доступно</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Правая колонка: Цели и целиком панель -->
+            <div>
+                <div class="card">
+                    <h3>Цели студии RedRibbon</h3>
+                    <p class="about-text">• Создание уникальных игровых экосистем высокого уровня.</p>
+                    <p class="about-text">• Разработка собственного безопасного мессенджера BaseCom.</p>
+                    <p class="about-text">• Погружение пользователей в глубокие сюжеты визуальных новелл.</p>
+                    <p class="about-text">• Автоматизация внутренних процессов с помощью облачной АТС.</p>
+                </div>
+
+                <div class="card">
+                    <h3>Панель сотрудника</h3>
+                    <p class="about-text">Добро пожаловать в рабочую зону. Используйте виджеты справа внизу для связи с техподдержкой или запуска голосового интерфейса АТС.</p>
+                </div>
             </div>
         </div>
+    </div>
 
-        <!-- Виджет АТС -->
-        <div class="card">
-            <h3 class="card-title">Голосовая АТС</h3>
+    <!-- ПЛАВАЮЩИЕ КНОПКИ СПРАВА СНИЗУ -->
+    <div class="floating-dock">
+        <!-- Кнопка чата -->
+        <button class="float-btn" onclick="openChatModal()" title="Чат поддержки">💬</button>
+        <!-- Кнопка звонка АТС -->
+        <button class="float-btn" onclick="openCallModal()" title="Позвонить онлайн">📞</button>
+    </div>
+
+    <!-- МОДАЛКА: ЧАТ -->
+    <div id="chat-modal" class="modal-overlay">
+        <div class="modal-card">
+            <h3>Поддержка RedRibbon</h3>
+            <p>💬 Чат сломался, уже чиним!</p>
+            <button class="btn-close" onclick="closeChatModal()">Понятно</button>
+        </div>
+    </div>
+
+    <!-- МОДАЛКА: АТС ЗВОНОК -->
+    <div id="call-modal" class="modal-overlay">
+        <div class="modal-card">
+            <h3>Облачная АТС</h3>
             
             <div class="ats-display">
-                <div class="ats-status-text">
-                    <span id="dot" class="status-indicator"></span>
-                    <span id="status-text">Ожидание вызова</span>
+                <div class="ats-status-lbl">
+                    <span id="dot" class="status-dot"></span>
+                    <span id="statusText">Линия свободна</span>
                 </div>
-                <div id="screen-text" class="ats-screen-text">Нажмите «Вызов» для связи</div>
+                <div id="screenText" class="ats-screen-txt">Нажмите «Вызов» для соединения</div>
             </div>
 
-            <div class="numpad-grid">
+            <div class="numpad">
                 <button class="btn-num" onclick="pressKey('1')">1</button>
                 <button class="btn-num" onclick="pressKey('2')">2</button>
                 <button class="btn-num" onclick="pressKey('3')">3</button>
@@ -289,117 +483,155 @@
                 <button class="btn-num" onclick="pressKey('#')">#</button>
             </div>
 
-            <div class="action-row">
-                <button class="btn-action btn-start" onclick="startCall()">📞 Вызов</button>
-                <button class="btn-action btn-stop" onclick="endCall()">❌ Сброс</button>
+            <div class="call-actions">
+                <button class="btn-call-act btn-start" onclick="startCall()">📞 Вызов</button>
+                <button class="btn-call-act btn-stop" onclick="endCall()">❌ Сброс</button>
+            </div>
+            
+            <div style="text-align: center; margin-top: 15px;">
+                <button class="btn-close" onclick="closeCallModal()">Закрыть</button>
             </div>
         </div>
     </div>
 
-    <!-- АУДИОФАЙЛЫ В КОРНЕ РЕПОЗИТОРИЯ -->
+    <!-- АУДИО ФАЙЛЫ ИЗ КОРНЯ -->
     <audio id="audioWelcome" src="welcome.mp3"></audio>
     <audio id="audioBusy" src="busy.mp3"></audio>
     <audio id="audioHoldMusic" src="hold.mp3"></audio>
 
     <script>
+        // ЛОГИКА АВТОРИЗАЦИИ
+        function handleLogin() {
+            const login = document.getElementById('loginInput').value.trim();
+            const pass = document.getElementById('passwordInput').value.trim();
+            const err = document.getElementById('authError');
+
+            // Условие входа: Глеб (владелец) или обычный сотрудник
+            if (login === "Глеб" && pass === "gleb123") {
+                // Владелец с полным доступом
+                grantAccess(true, "Владелец: Глеб");
+            } else if (login !== "" && pass !== "") {
+                // Обычный сотрудник (без доступа к SanTrope и BaseCom)
+                grantAccess(false, "Сотрудник: " + login);
+            } else {
+                err.innerText = "Введите логин и пароль!";
+            }
+        }
+
+        function grantAccess(isOwner, roleName) {
+            document.getElementById('auth-overlay').style.display = 'none';
+            document.getElementById('main-content').style.display = 'flex';
+            document.getElementById('userBadge').innerText = roleName;
+
+            if (isOwner) {
+                // Открываем права для владельца
+                document.getElementById('badgeSanTrope').innerText = "Доступно (Админ)";
+                document.getElementById('badgeSanTrope').className = "access-badge access-yes";
+                
+                document.getElementById('badgeBaseCom').innerText = "Доступно (Разработка)";
+                document.getElementById('badgeBaseCom').className = "access-badge access-yes";
+            }
+        }
+
+        // МОДАЛЬНЫЕ ОКНА (ЧАТ И ЗВОНОК)
+        function openChatModal() {
+            document.getElementById('chat-modal').style.display = 'flex';
+        }
+        function closeChatModal() {
+            document.getElementById('chat-modal').style.display = 'none';
+        }
+
+        function openCallModal() {
+            document.getElementById('call-modal').style.display = 'flex';
+        }
+        function closeCallModal() {
+            endCall();
+            document.getElementById('call-modal').style.display = 'none';
+        }
+
+        // ЛОГИКА АТС И ЗВУКОВЫХ СЦЕНАРИЕВ
         let inCall = false;
         let inputBuffer = "";
-        const PIN = "1337"; // Пин-код для служебной линии
+        const PIN = "1337";
 
         const audioWelcome = document.getElementById('audioWelcome');
         const audioBusy = document.getElementById('audioBusy');
         const audioHoldMusic = document.getElementById('audioHoldMusic');
 
-        function setStatus(text, isActiveCall) {
-            document.getElementById('status-text').innerText = text;
-            const dot = document.getElementById('dot');
-            dot.className = 'status-indicator ' + (isActiveCall ? 'status-call' : 'status-active');
+        function setAtsState(statusText, screenText, isCallActive) {
+            document.getElementById('statusText').innerText = statusText;
+            document.getElementById('screenText').innerText = screenText;
+            document.getElementById('dot').className = "status-dot " + (isCallActive ? "status-call" : "status-on");
         }
 
-        function setScreenText(text) {
-            document.getElementById('screen-text').innerText = text;
-        }
-
-        // Остановка всех звуковых потоков
         function stopAllAudio() {
             [audioWelcome, audioBusy, audioHoldMusic].forEach(a => {
                 a.pause();
                 a.currentTime = 0;
-                a.onended = null; // Отменяем зацикленные подписки
+                a.onended = null;
             });
         }
 
-        // Запуск звонка
         function startCall() {
             inCall = true;
             inputBuffer = "";
             stopAllAudio();
-            setStatus("Звонок активен", true);
-            setScreenText("Приветствуем в RedRibbon Studio! Выберите ветку...");
+            setAtsState("Звонок активен", "Соединение с RedRibbon...", true);
 
-            // Воспроизводим приветственное сообщение welcome.mp3 из корня
             audioWelcome.play().catch(e => {
-                setScreenText("Ошибка: Убедитесь, что welcome.mp3 загружен в корень");
+                setAtsState("Ошибка", "Файл welcome.mp3 не найден в корне", true);
             });
         }
 
-        // Завершение звонка
         function endCall() {
             inCall = false;
             inputBuffer = "";
             stopAllAudio();
-            setStatus("Линия свободна", false);
-            setScreenText("Нажмите «Вызов» для связи");
+            setAtsState("Линия свободна", "Нажмите «Вызов» для связи", false);
         }
 
-        // Нажатие на кнопки Numpad
         function pressKey(key) {
             if (!inCall) return;
             inputBuffer += key;
-
-            stopAllAudio(); // Прерываем текущий звук при вводе команды
+            stopAllAudio();
 
             if (inputBuffer === "1") {
-                setScreenText("Ветка SanTrope Vanilla");
+                setAtsState("Ветка: SanTrope Vanilla", "Переадресация на администрацию...");
                 startHoldCycle();
             } else if (inputBuffer === "2") {
-                setScreenText("Ветка BaseCom Messenger");
+                setAtsState("Ветка: BaseCom", "Переадресация на отдел разработки...");
                 startHoldCycle();
             } else if (inputBuffer === "3") {
-                setScreenText("Ветка «Застывший взгляд Аски»");
+                setAtsState("Ветка: Новелла", "Проект «Застывший взгляд Аски»...");
                 startHoldCycle();
             } else if (inputBuffer === "4") {
-                setScreenText("Отдел Рекламы и PR");
+                setAtsState("Ветка: Реклама", "Отдел сотрудничества и PR...");
                 startHoldCycle();
             } else if (inputBuffer === "9") {
-                setScreenText("Введите PIN-код и нажмите #");
+                setAtsState("Служебный доступ", "Введите PIN-код и нажмите #");
             } else if (inputBuffer.endsWith("#")) {
                 let code = inputBuffer.replace("#", "").trim();
                 if (code.endsWith(PIN)) {
-                    setScreenText("Служебная линия. Доступ разрешен!");
+                    setAtsState("Служебная линия", "Авторизация успешна!");
                 } else {
-                    setScreenText("Неверный PIN-код!");
+                    setAtsState("Ошибка", "Неверный PIN-код!");
                     inputBuffer = "";
                 }
             }
         }
 
-        // Зацикленная цепочка ожидания: Голос ➔ Музыка ➔ Голос ➔ Музыка
+        // Бесконечный цикл ожидания: Голос (busy.mp3) ➔ Музыка (hold.mp3) ➔ Повтор
         function startHoldCycle() {
             if (!inCall) return;
+            setAtsState("Ожидание оператора", "Все операторы заняты, пожалуйста ожидайте...");
 
-            setScreenText("Все операторы заняты. Пожалуйста, ожидайте...");
+            audioBusy.play().catch(e => console.log("busy.mp3 not found"));
 
-            // 1. Запускаем ваш голос busy.mp3
-            audioBusy.play().catch(e => console.log("Файл busy.mp3 не найден в корне"));
-
-            // 2. По завершению голоса включаем музыку hold.mp3
             audioBusy.onended = function() {
                 if (!inCall) return;
-                audioHoldMusic.play().catch(e => console.log("Файл hold.mp3 не найден в корне"));
+                audioHoldMusic.play().catch(e => console.log("hold.mp3 not found"));
             };
 
-            // 3. По завершению музыки снова запускаем весь цикл
             audioHoldMusic.onended = function() {
                 if (!inCall) return;
                 startHoldCycle();
